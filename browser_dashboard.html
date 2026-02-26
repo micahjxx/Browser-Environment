@@ -1,0 +1,251 @@
+<!--
+README
+Author: Micah Janelle Padis
+File: browser_dashboard.html
+
+Description:
+This single HTML file implements a Browser Information Dashboard.
+
+It contains:
+Part 0 – Profile Header Section (styled and separated)
+Part A – Browser & Screen Information (navigator + screen objects)
+Part B – Page Information & Dynamic Title Update (document, location, window)
+Part C – Navigation Controls (location + history)
+Part D – Dynamic Background Color based on Screen Width (responsive using JS)
+
+All CSS and JavaScript are embedded.
+JavaScript includes clear comments explaining each section.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Browser Dashboard</title>
+
+    <style>
+        /* GENERAL PAGE STYLING */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.5s ease;
+        }
+
+        /* PROFILE HEADER SECTION */
+        .profile-header {
+            background-color: #222;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 5px solid #444;
+        }
+
+        .profile-header h1 {
+            margin-bottom: 10px;
+        }
+
+        .profile-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            text-align: left;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .dashboard-section {
+            padding: 20px;
+            margin: 20px;
+            border-radius: 10px;
+            background-color: rgba(255,255,255,0.9);
+            box-shadow: 0 4px 8px #FFA6A6;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin: 5px 5px 5px 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #FF7070;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .dashboard-section{
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+          .dashboard-section:hover{
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.profile-pic{
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px; /* box shape */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+    </style>
+</head>
+
+<body>
+
+    
+    <!-- PART 0: PROFILE INFO -->
+    
+    <div class="profile-header">
+        <h1>Student Profile Dashboard</h1>
+        <img src="Micah Janelle B. Padis.jpg" alt="Profile Picture" class="profile-pic">
+        <div class="profile-details">
+            <div><strong>Complete Name:</strong> Micah Janelle B. Padis</div>
+            <div><strong>Sex:</strong> Female</div>
+            <div><strong>Address:</strong> San Rafael, Tigaon, Camarines Sur</div>
+            <div><strong>Course, Year, Section:</strong> BSIT - 2D</div>
+            <div><strong>Name of School:</strong> Partido State University</div>
+            <div><strong>Semester & Academic Year:</strong> 2nd Semester, 2025-2026</div>
+            <div><strong>Subject Code & Title:</strong> : IT2D_PF2 Event-Driven Programming</div>
+            <div><strong>Subject Instructor:</strong> Arjay F. Abio</div>
+        </div>
+    </div>
+
+    
+    <!-- PART A -->
+    
+    <div class="dashboard-section">
+        <h2> Browser & Screen Information</h2>
+        <p id="browserInfo"></p>
+        <p id="screenInfo"></p>
+    </div>
+
+    
+    <!-- PART B -->
+    
+    <div class="dashboard-section">
+        <h2>Page Information & Controls</h2>
+        <p><strong>Current URL:</strong> <span id="currentURL"></span></p>
+        <p><strong>Hostname:</strong> <span id="hostname"></span></p>
+        <p><strong>Page Title:</strong> <span id="pageTitle"></span></p>
+
+        <button onclick="changeTitle()">Change Page Title</button>
+    </div>
+
+    
+    <!-- PART C -->
+    
+    <div class="dashboard-section">
+        <h2>Navigation Controls</h2>
+
+        <button onclick="reloadPage()">Reload Page</button>
+        <button onclick="redirectPage()">Go to Homepage</button>
+        <button onclick="goBack()">Back</button>
+        <button onclick="goForward()">Forward</button>
+    </div>
+
+    <script>
+        
+        /* PART A: BROWSER INFORMATION   */
+        
+
+        // Display browser information using navigator object
+        const browserInfo = `
+            Browser: ${navigator.appName} <br>
+            Version: ${navigator.appVersion} <br>
+            Platform (OS): ${navigator.platform} <br>
+            Java Enabled: ${navigator.javaEnabled()}
+        `;
+        document.getElementById("browserInfo").innerHTML = browserInfo;
+
+        // Display screen information using screen object
+        const screenInfo = `
+            Screen Resolution: ${screen.width} x ${screen.height} <br>
+            Available Screen Size: ${screen.availWidth} x ${screen.availHeight} <br>
+            Color Depth: ${screen.colorDepth}
+        `;
+        document.getElementById("screenInfo").innerHTML = screenInfo;
+
+
+        
+        /* PART B: PAGE INFO & TITLE CONTROLS    */
+        
+
+        // Display page information using location & document
+        document.getElementById("currentURL").textContent = window.location.href;
+        document.getElementById("hostname").textContent = window.location.hostname;
+        document.getElementById("pageTitle").textContent = document.title;
+
+        // Function to change page title dynamically
+        function changeTitle() {
+            const newTitle = prompt("Enter new page title:");
+
+            if (newTitle) {
+                document.title = newTitle;
+                document.getElementById("pageTitle").textContent = newTitle;
+            }
+        }
+
+
+        
+        /* PART C: NAVIGATION CONTROLS           */
+        
+
+        // Reload current page
+        function reloadPage() {
+            location.reload();
+        }
+
+        // Redirect to another URL
+        function redirectPage() {
+            location.href = "index.html";
+        }
+
+        // Navigate back
+        function goBack() {
+            history.back();
+        }
+
+        // Navigate forward
+        function goForward() {
+            history.forward();
+        }
+
+
+        
+        /* PART D: DYNAMIC BACKGROUND COLOR      */
+        
+
+        // Function to change background based on screen width
+        function updateBackgroundColor() {
+            const width = window.innerWidth;
+
+            if (width < 600) {
+                document.body.style.backgroundColor = "blue";
+            } 
+            else if (width >= 600 && width <= 991) {
+                document.body.style.backgroundColor = "green";
+            } 
+            else {
+                document.body.style.backgroundColor = "orange";
+            }
+        }
+
+        // Apply on page load
+        window.onload = updateBackgroundColor;
+
+        // Apply on window resize
+        window.onresize = updateBackgroundColor;
+
+    </script>
+
+</body>
+</html>
