@@ -1,0 +1,285 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Interactive DOM Traversal and Manipulation</title><style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+    background-color: #FFB6C1;
+}
+
+h2 { margin-bottom: 10px; }
+
+.header {
+    border: 1px solid #000;
+    padding: 15px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.node {
+    padding: 10px;
+    margin: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.grandparent { background-color: #ffcccb; }
+.parent { background-color: #add8e6; }
+.child { background-color: #90ee90; }
+
+.highlight { border: 3px solid black; }
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.column { margin: 10px; min-width: 120px; }
+
+button {
+    margin: 8px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background-color: #FF69B4;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover { opacity: 0.8; }
+
+/* NEW BUTTON LAYOUT */
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 20px 0;
+}
+
+.group {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.group h3 {
+    margin-bottom: 10px;
+}
+
+.group button {
+    display: block;
+    width: 140px;
+    margin: 8px auto;
+}
+</style></head><body><div class="header">
+    <p><strong>Complete Name:</strong> Micah Janelle B. Padis</p>
+    <p><strong>Sex:</strong> Female</p>
+    <p><strong>Address:</strong> Zone 2, San Rafael, Tigaon, Camarines Sur</p>
+    <p><strong>Course, Year, Section:</strong> BSIT 2-D</p>
+    <p><strong>Name of School:</strong> Partido State Universiry</p>
+    <p><strong>Semester & Academic Year:</strong> 2nd Semester 2025-2026</p>
+    <p><strong>Subject Code & Title:</strong> PF2 Event Driven Programming</p>
+    <p><strong>Instructor:</strong> Arjay F. Abio</p>
+</div><h2>Interactive DOM Traversal</h2><!-- ORGANIZED BUTTONS --><div class="controls"><div class="group">
+    <h3>Traversal</h3>
+    <button onclick="traverseUp()">Up</button>
+    <button onclick="traverseDown()">Down</button>
+    <button onclick="nextSibling()">Next</button>
+    <button onclick="prevSibling()">Previous</button>
+</div>
+
+<div class="group">
+    <h3>Manipulation</h3>
+    <button onclick="addNode()">Add Node</button>
+    <button onclick="deleteNode()">Delete Node</button>
+</div>
+
+</div><div id="tree" class="node grandparent">
+    Grandparent<div class="container" id="parentContainer">
+
+    <div class="column node parent">
+        Parent 1
+        <div class="node child">Child 1</div>
+        <div class="node child">Child 2</div>
+    </div>
+
+    <div class="column node parent">
+        Parent 2
+        <div class="node child">Child 3</div>
+        <div class="node child">Child 4</div>
+    </div>
+
+</div>
+
+</div><script>
+// variables
+let selectedNode = null;
+let parentCount = 2;
+
+// select node
+function selectNode(event) {
+    event.stopPropagation();
+
+    if (selectedNode) {
+        selectedNode.classList.remove("highlight");
+    }
+
+    selectedNode = event.currentTarget;
+    selectedNode.classList.add("highlight");
+}
+
+function attachListeners() {
+    const nodes = document.querySelectorAll('.node');
+
+    nodes.forEach(node => {
+        node.removeEventListener('click', selectNode);
+        node.addEventListener('click', selectNode);
+    });
+}
+
+attachListeners();
+
+// traverse up
+function traverseUp() {
+    if (!selectedNode) return;
+
+    const parent = selectedNode.parentElement.closest('.node');
+
+    if (parent) {
+        selectedNode.classList.remove("highlight");
+        selectedNode = parent;
+        selectedNode.classList.add("highlight");
+    }
+}
+
+// traverse down
+function traverseDown() {
+    if (!selectedNode) return;
+
+    const child = selectedNode.querySelector('.node');
+
+    if (child) {
+        selectedNode.classList.remove("highlight");
+        selectedNode = child;
+        selectedNode.classList.add("highlight");
+    }
+}
+
+// next sibling
+function nextSibling() {
+    if (!selectedNode) return;
+
+    const parent = selectedNode.parentElement;
+
+    const siblings = Array.from(parent.children).filter(el =>
+        el.classList.contains('node') &&
+        el.classList[1] === selectedNode.classList[1]
+    );
+
+    const index = siblings.indexOf(selectedNode);
+
+    if (index !== -1 && index < siblings.length - 1) {
+        selectedNode.classList.remove("highlight");
+        selectedNode = siblings[index + 1];
+        selectedNode.classList.add("highlight");
+    } else {
+        alert("No next sibling!");
+    }
+}
+
+// previous sibling
+function prevSibling() {
+    if (!selectedNode) return;
+
+    const parent = selectedNode.parentElement;
+
+    const siblings = Array.from(parent.children).filter(el =>
+        el.classList.contains('node') &&
+        el.classList[1] === selectedNode.classList[1]
+    );
+
+    const index = siblings.indexOf(selectedNode);
+
+    if (index > 0) {
+        selectedNode.classList.remove("highlight");
+        selectedNode = siblings[index - 1];
+        selectedNode.classList.add("highlight");
+    } else {
+        alert("No previous sibling!");
+    }
+}
+
+// add node
+function addNode() {
+    if (!selectedNode) return;
+
+    // GRANDPARENT → add new parent
+    if (selectedNode.classList.contains('grandparent')) {
+        parentCount++;
+
+        const newParent = document.createElement('div');
+        newParent.className = 'column node parent';
+        newParent.textContent = 'Parent ' + parentCount;
+
+        // store child count for this parent
+        newParent.dataset.childCount = 0;
+
+        // add 2 children automatically
+        for (let i = 0; i < 2; i++) {
+            let childNumber = parseInt(newParent.dataset.childCount) + 1;
+            newParent.dataset.childCount = childNumber;
+
+            const newChild = document.createElement('div');
+            newChild.className = 'node child';
+            newChild.textContent = 'Child ' + childNumber;
+
+            newParent.appendChild(newChild);
+        }
+
+        document.getElementById('parentContainer').appendChild(newParent);
+    }
+
+    // PARENT → add child
+    else if (selectedNode.classList.contains('parent')) {
+
+    if (!selectedNode.dataset.childCount) {
+        selectedNode.dataset.childCount = selectedNode.querySelectorAll('.child').length;
+    }
+
+    let childNumber = parseInt(selectedNode.dataset.childCount) + 1;
+    selectedNode.dataset.childCount = childNumber;
+
+    const newChild = document.createElement('div');
+    newChild.className = 'node child';
+    newChild.textContent = 'Child ' + childNumber;
+
+    selectedNode.appendChild(newChild);
+}
+
+    else {
+        alert('Cannot add child to a child node');
+    }
+
+    attachListeners();
+}
+
+// delete node
+function deleteNode() {
+    if (!selectedNode) return;
+
+    if (selectedNode.classList.contains('grandparent')) {
+        alert('Cannot delete grandparent node');
+        return;
+    }
+
+    selectedNode.remove();
+    selectedNode = null;
+}
+</script></body>
+</html>
