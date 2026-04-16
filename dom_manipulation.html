@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Interactive Profile</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #e69ddc;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* MAIN GRID */
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 15px;
+    padding: 15px;
+    height: 100%;
+}
+
+/* LEFT SIDE */
+.left {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.title {
+    font-size: 40px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.profile-box {
+    background: #f2e7e7;
+    border-radius: 30px;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-box img {
+    width: 150px;
+    height: 150px;
+    border-radius: 10%;
+    cursor: pointer;
+    object-fit: cover;
+}
+
+/* RIGHT SIDE */
+.right-box {
+    background: #b48db6;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 40px;
+    height: 100%;
+}
+
+.section {
+    flex: 1;
+    overflow: hidden;
+}
+
+.section h2 {
+    text-align: center;
+    font-size: 25px;
+    margin: 5px 0;
+}
+
+.divider {
+    height: 3px;
+    background: black;
+    margin: 5px 0;
+}
+
+/* BOTTOM GRID */
+.bottom {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    height: 100%;
+}
+
+.box {
+    background: #b48db6;
+    padding: 15px;
+    border-radius: 40px;
+    overflow: hidden;
+}
+
+/* LIST */
+li {
+    cursor: pointer;
+    padding: 3px;
+}
+
+li:hover {
+    background: lightgray;
+}
+
+.highlight {
+    background: yellow;
+}
+
+button {
+    margin: 3px;
+    font-size: 12px;
+}
+
+/* TITLE BAR */
+.title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* RESET BUTTON */
+.reset-btn {
+    padding: 6px 12px;
+    font-weight: bold;
+    background: black;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LEFT -->
+    <div class="left">
+        <div class="title-bar">
+            <div class="title">Profile</div>
+            <button class="reset-btn" onclick="resetData()">RESET</button>
+        </div>
+
+        <div class="profile-box">
+            <img id="profilePic" src="profile.jpg">
+        </div>
+
+        <input type="file" id="fileInput" hidden>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-box">
+
+        <div class="section">
+            <h2>Name</h2>
+            <h3 id="name">Micah Janelle B. Padis</h3>
+            <button onclick="editName()">Edit</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+            <h2>Skills</h2>
+
+            <ul id="skillsList">
+                <li draggable="true">HTML</li>
+                <li draggable="true">CSS</li>
+                <li draggable="true">JavaScript</li>
+            </ul>
+
+            <button onclick="showSkillInput()">Add</button>
+            <button onclick="deleteSelected('skillsList')">Delete</button>
+
+            <div id="skillInputContainer"></div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM -->
+    <div class="bottom">
+
+        <div class="box">
+            <h2>Education</h2>
+            <div id="education">
+                <p contenteditable="false">School: Partido State University</p>
+                <p contenteditable="false">Course: BSIT</p>
+                <p contenteditable="false">Year: 2026</p>
+            </div>
+            <button onclick="editEducation()">Edit</button>
+        </div>
+
+        <div class="box">
+            <h2>Hobbies</h2>
+
+            <ul id="hobbyList">
+                <li draggable="true">Reading</li>
+                <li draggable="true">Gaming</li>
+                <li draggable="true">Music</li>
+            </ul>
+
+            <button onclick="showHobbyInput()">Add</button>
+            <button onclick="deleteSelected('hobbyList')">Delete</button>
+
+            <div id="hobbyInputContainer"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+// SAVE / LOAD
+function saveData() {
+    localStorage.setItem("profile", document.body.innerHTML);
+}
+
+function loadData() {
+    if (localStorage.getItem("profile")) {
+        document.body.innerHTML = localStorage.getItem("profile");
+        reinitialize();
+    }
+}
+
+window.onload = () => {
+    loadData();
+    reinitialize();
+};
+
+// REINITIALIZE
+function reinitialize() {
+    initProfilePic();
+    document.querySelectorAll("li").forEach(addItemEvents);
+}
+
+// PROFILE PIC
+function initProfilePic() {
+    const pic = document.getElementById("profilePic");
+    const fileInput = document.getElementById("fileInput");
+
+    if (!pic || !fileInput) return;
+
+    pic.onclick = () => fileInput.click();
+
+    fileInput.onchange = () => {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            pic.src = e.target.result;
+            saveData();
+        };
+
+        reader.readAsDataURL(file);
+    };
+}
+
+// NAME
+function editName() {
+    const name = document.getElementById("name");
+    const input = document.createElement("input");
+
+    input.value = name.innerText;
+    name.replaceWith(input);
+    input.focus();
+
+    input.onblur = saveName;
+    input.onkeypress = (e) => {
+        if (e.key === "Enter") saveName();
+    };
+
+    function saveName() {
+        const h3 = document.createElement("h3");
+        h3.id = "name";
+        h3.innerText = input.value;
+        input.replaceWith(h3);
+        saveData();
+    }
+}
+
+// ADD SKILL
+function showSkillInput() {
+    const container = document.getElementById("skillInputContainer");
+    const input = document.createElement("input");
+
+    input.placeholder = "Enter skill...";
+    container.appendChild(input);
+    input.focus();
+
+    input.onkeypress = (e) => {
+        if (e.key === "Enter") {
+            const li = document.createElement("li");
+            li.textContent = input.value;
+            li.draggable = true;
+
+            document.getElementById("skillsList").appendChild(li);
+            input.remove();
+
+            addItemEvents(li);
+            saveData();
+        }
+    };
+}
+
+// ADD HOBBY
+function showHobbyInput() {
+    const container = document.getElementById("hobbyInputContainer");
+    const input = document.createElement("input");
+
+    input.placeholder = "Enter hobby...";
+    container.appendChild(input);
+    input.focus();
+
+    input.onkeypress = (e) => {
+        if (e.key === "Enter") {
+            const li = document.createElement("li");
+            li.textContent = input.value;
+            li.draggable = true;
+
+            document.getElementById("hobbyList").appendChild(li);
+            input.remove();
+
+            addItemEvents(li);
+            saveData();
+        }
+    };
+}
+
+// DELETE
+function deleteSelected(listId) {
+    const list = document.getElementById(listId);
+    const items = list.querySelectorAll(".highlight");
+
+    items.forEach(item => item.remove());
+    saveData();
+}
+
+// SELECT
+function addItemEvents(li) {
+    li.onclick = () => {
+        li.classList.toggle("highlight");
+    };
+}
+
+// DRAG
+let dragged;
+
+document.addEventListener("dragstart", (e) => {
+    dragged = e.target;
+});
+
+document.addEventListener("dragover", (e) => {
+    e.preventDefault();
+});
+
+document.addEventListener("drop", (e) => {
+    if (e.target.tagName === "LI") {
+        e.target.parentNode.insertBefore(dragged, e.target);
+        saveData();
+    }
+});
+
+// EDUCATION
+function editEducation() {
+    document.querySelectorAll("#education p").forEach(p => {
+        p.contentEditable = true;
+
+        p.onblur = () => {
+            p.contentEditable = false;
+            saveData();
+        };
+    });
+}
+
+// RESET
+function resetData() {
+    localStorage.clear();
+    location.reload();
+}
+</script>
+
+</body>
+</html>

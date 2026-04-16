@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taskify - Simple</title>
+
+<style>
+:root {
+    --main-bg: #fdf5e2;
+    --main-text: #000000;
+    --task-bg: #fddcb4;
+    --task-hover: #e7f0ff;
+    --completed-text: black;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--main-bg);
+    color: var(--main-text);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.container {
+    width: 550px;
+    text-align: center;
+}
+
+h1 { margin-bottom: 5px; }
+.subtitle { color: gray; }
+.name { margin-bottom: 20px; }
+
+.input-section {
+    display: flex;
+    margin-top: 20px;
+}
+
+#taskInput {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: var(--task-bg);
+    transition: 0.2s;
+}
+
+#taskInput:focus {
+    outline: none;
+    border: 2px solid #2d89ef;
+    background: white;
+    box-shadow: 0 0 5px rgba(45, 137, 239, 0.4);
+}
+
+#taskInput::placeholder {
+    color: #888;
+}
+
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    background: #484b6a;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #1b5fa7;
+}
+
+.controls {
+    margin-top: 10px;
+}
+
+.stats {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    background: var(--task-bg);
+    margin-top: 10px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 6px;
+    transition: 0.2s;
+    cursor: grab;
+}
+
+li:hover {
+    background: var(--task-hover);
+    transform: scale(1.01);
+}
+
+.completed {
+    text-decoration: line-through;
+    color: var(--completed-text);
+}
+
+.editing {
+    background: #fff7cc;
+}
+
+.dark-mode {
+    --main-bg: #121212;
+    --main-text: #ffffff;
+    --task-bg: #1e1e1e;
+    --task-hover: #333333;
+    --completed-text: #888888;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Taskify</h1>
+    <p class="subtitle">A Simple Task Manager</p>
+    <p class="name">Name: Micah Janelle B. Padis BSIT-2D</p>
+
+    <!-- INPUT -->
+    <div class="input-section">
+        <input type="text" id="taskInput" placeholder="Add new task here...">
+        <button id="addBtn">+</button>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+        <button id="sortAZ">Sort A-Z</button>
+        <button id="sortZA">Sort Z-A</button>
+        <button id="reset">Reset</button>
+        <button id="deleteSelected">Delete Selected</button>
+        <button id="themeToggle">Toggle Theme</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+        Total: <span id="total">0</span> |
+        Completed: <span id="completed">0</span> |
+        Deleted: <span id="deleted">0</span> |
+        Edited: <span id="edited">0</span>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<!-- JS -->
+<script>
+// Data
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let deletedCount = 0;
+let editedCount = 0;
+
+// Elements
+const taskInput = document.getElementById("taskInput");
+const taskList = document.getElementById("taskList");
+
+// Add task
+function addTask() {
+    let text = taskInput.value.trim();
+    if (!text) { alert("Empty task not allowed"); return; }
+    if (tasks.some(t => t.text.toLowerCase() === text.toLowerCase())) {
+        alert("Task already exists!");
+        return;
+    }
+    tasks.push({text, done:false});
+    taskInput.value = "";
+    save();
+    render();
+}
+
+// Render
+function render() {
+    taskList.innerHTML = "";
+    tasks.forEach((task, index) => {
+        let li = document.createElement("li");
+        li.draggable = true;
+
+        let left = document.createElement("div");
+
+        // Checkbox
+        let check = document.createElement("input");
+        check.type = "checkbox";
+        check.checked = task.done;
+        check.onchange = () => { task.done = check.checked; save(); render(); };
+
+        // Task text
+        let span = document.createElement("span");
+        span.textContent = task.text;
+        span.style.marginLeft = "10px";
+        if(task.done) span.classList.add("completed");
+
+        // Double-click / long press edit
+        span.ondblclick = () => startEdit(span, task);
+        span.addEventListener("touchstart", function(e){
+            this.pressTimer = setTimeout(()=> startEdit(span, task), 500);
+        });
+        span.addEventListener("touchend", function(e){ clearTimeout(this.pressTimer); });
+
+        left.appendChild(check);
+        left.appendChild(span);
+
+        // Delete button
+        let del = document.createElement("button");
+        del.textContent = "X";
+        del.onclick = () => {
+            if(confirm(`Delete task: "${task.text}"?`)){
+                tasks.splice(index,1);
+                deletedCount++;
+                save();
+                render();
+            }
+        };
+
+        li.appendChild(left);
+        li.appendChild(del);
+
+        // Drag-and-drop
+        li.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", index); });
+        li.addEventListener("dragover", e => e.preventDefault());
+        li.addEventListener("drop", e => {
+            let fromIndex = e.dataTransfer.getData("text/plain");
+            let toIndex = index;
+            [tasks[fromIndex], tasks[toIndex]] = [tasks[toIndex], tasks[fromIndex]];
+            save(); render();
+        });
+
+        taskList.appendChild(li);
+    });
+
+    updateStats();
+}
+
+// Edit function
+function startEdit(span, task) {
+    let li = span.parentElement.parentElement;
+    li.querySelector("button").disabled = true; // disable delete
+    span.classList.add("editing");
+
+    let input = document.createElement("input");
+    input.type = "text";
+    input.value = task.text;
+    input.style.flex = "1";
+
+    span.replaceWith(input);
+    input.focus();
+
+    const finishEdit = () => {
+        let newText = input.value.trim();
+        if(newText && !tasks.some(t=>t.text.toLowerCase() === newText.toLowerCase() && t!==task)) {
+            task.text = newText;
+            editedCount++;
+        } else if(newText==="") alert("Empty task not allowed");
+        save(); render();
+    };
+
+    input.addEventListener("keypress", e => { if(e.key==="Enter") finishEdit(); });
+    input.addEventListener("blur", finishEdit);
+}
+
+// Stats
+function updateStats() {
+    document.getElementById("total").textContent = tasks.length;
+    document.getElementById("completed").textContent = tasks.filter(t=>t.done).length;
+    document.getElementById("deleted").textContent = deletedCount;
+    document.getElementById("edited").textContent = editedCount;
+}
+
+// Save
+function save(){ localStorage.setItem("tasks", JSON.stringify(tasks)); }
+
+// Event listeners
+document.getElementById("addBtn").addEventListener("click", addTask);
+taskInput.addEventListener("keypress", e => { if(e.key==="Enter") addTask(); });
+document.getElementById("deleteSelected").addEventListener("click", ()=>{
+    let selectedCount = tasks.filter(t=>t.done).length;
+    if(selectedCount===0) return alert("No tasks selected!");
+    if(confirm(`Delete ${selectedCount} selected tasks?`)){
+        tasks = tasks.filter(t=>!t.done);
+        deletedCount += selectedCount;
+        save(); render();
+    }
+});
+document.getElementById("sortAZ").addEventListener("click", ()=>{ tasks.sort((a,b)=>a.text.localeCompare(b.text)); save(); render(); });
+document.getElementById("sortZA").addEventListener("click", ()=>{ tasks.sort((a,b)=>b.text.localeCompare(a.text)); save(); render(); });
+document.getElementById("reset").addEventListener("click", ()=>{ location.reload(); });
+document.getElementById("themeToggle").addEventListener("click", ()=>{ document.body.classList.toggle("dark-mode"); });
+
+render();
+</script>
+
+</body>
+</html>
