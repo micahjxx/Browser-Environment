@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Table Comparison</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    padding: 20px;
+    background-color: #ffc0cb;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 20px auto;
+    width: 70%;
+}
+
+th, td {
+    border: 3px solid #999;
+    padding: 10px;
+}
+
+th {
+    background-color: white;
+}
+
+input {
+    padding: 8px;
+    margin: 5px;
+}
+
+/* BUTTON EFFECTS */
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    font-weight: bold;
+    transition: 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+button:hover {
+    background: #ff99aa;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+</style>
+</head>
+
+<body>
+
+<h2>Product Table Comparison</h2>
+
+<!-- INPUT FORM -->
+<input type="text" id="name" placeholder="Product Name">
+<input type="text" id="price" placeholder="Price">
+<input type="text" id="category" placeholder="Category"><br>
+
+<button onclick="addInnerHTML()">Add (innerHTML)</button>
+<button onclick="addDOM()">Add (DOM Methods)</button>
+
+<br><br>
+
+<button onclick="loadInnerHTML()">Load using innerHTML</button>
+<button onclick="loadDOM()">Load using DOM Methods</button>
+<button onclick="clearTable()">Clear Table</button>
+<button onclick="performanceTest()">Performance Test (100 rows)</button>
+
+<table>
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
+
+<p id="methodUsed"></p>
+
+<script>
+
+// ORIGINAL DATA 
+let productsHTML = [
+    { name: "Lipstick", price: "₱499", category: "Lips" },
+    { name: "Foundation", price: "₱899", category: "Face" }
+];
+
+let productsDOM = [
+    { name: "Mascara", price: "₱399", category: "Eyes" },
+    { name: "Blush", price: "₱299", category: "Cheeks" }
+];
+
+// INPUT GETTER
+function getInput() {
+    const name = document.getElementById("name").value.trim();
+    const price = document.getElementById("price").value.trim();
+    const category = document.getElementById("category").value.trim();
+
+    if (!name || !price || !category) {
+        alert("Please fill all fields!");
+        return null;
+    }
+
+    return { name, price, category };
+}
+
+// CLEAR INPUTS
+function clearInputs() {
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("category").value = "";
+}
+
+/* ADD PRODUCT (innerHTML) */
+function addInnerHTML() {
+    const p = getInput();
+    if (!p) return;
+
+    productsHTML.push(p);
+    loadInnerHTML();
+    clearInputs();
+}
+
+/* ADD PRODUCT (DOM) */
+function addDOM() {
+    const p = getInput();
+    if (!p) return;
+
+    productsDOM.push(p);
+    loadDOM();
+    clearInputs();
+}
+
+/* LOAD INNERHTML */
+function loadInnerHTML() {
+    let content = "";
+    const table = document.getElementById("tableBody");
+
+    productsHTML.forEach((p, index) => {
+        content += `
+        <tr>
+            <td>${p.name}</td>
+            <td>${p.price}</td>
+            <td>${p.category}</td>
+            <td><button onclick="deleteHTML(${index})">Delete</button></td>
+        </tr>
+        `;
+    });
+
+    table.innerHTML = content;
+    document.getElementById("methodUsed").textContent = "Method Used: innerHTML";
+}
+
+/* LOAD DOM */
+function loadDOM() {
+    const table = document.getElementById("tableBody");
+    table.innerHTML = "";
+
+    productsDOM.forEach((p, index) => {
+        const row = document.createElement("tr");
+
+        const name = document.createElement("td");
+        name.textContent = p.name;
+
+        const price = document.createElement("td");
+        price.textContent = p.price;
+
+        const category = document.createElement("td");
+        category.textContent = p.category;
+
+        const action = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.textContent = "Delete";
+        btn.onclick = () => deleteDOM(index);
+
+        action.appendChild(btn);
+
+        row.appendChild(name);
+        row.appendChild(price);
+        row.appendChild(category);
+        row.appendChild(action);
+
+        table.appendChild(row);
+    });
+
+    document.getElementById("methodUsed").textContent = "Method Used: DOM Methods";
+}
+
+/* DELETE FUNCTIONS */
+function deleteHTML(index) {
+    productsHTML.splice(index, 1);
+    loadInnerHTML();
+}
+
+function deleteDOM(index) {
+    productsDOM.splice(index, 1);
+    loadDOM();
+}
+
+/* CLEAR */
+function clearTable() {
+    document.getElementById("tableBody").innerHTML = "";
+    document.getElementById("methodUsed").textContent = "";
+    window.hacked = false;
+}
+
+/* GENERATE 100+ PRODUCTS*/
+function generateManyProducts(count) {
+    let products = [];
+    for (let i = 1; i <= count; i++) {
+        products.push({
+            name: "Product " + i,
+            price: Math.floor(Math.random() * 100),
+            category: "Category " + (i % 5 + 1)
+        });
+    }
+    return products;
+}
+
+/* PERFORMANCE TEST */
+function performanceTest() {
+    const many = generateManyProducts(100);
+
+    console.time("innerHTML");
+    productsHTML = [...many];
+    loadInnerHTML();
+    console.timeEnd("innerHTML");
+
+    console.time("DOM");
+    productsDOM = [...many];
+    loadDOM();
+    console.timeEnd("DOM");
+}
+
+</script>
+
+</body>
+</html>
